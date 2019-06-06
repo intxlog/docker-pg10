@@ -8,11 +8,15 @@ chown -R  postgres:postgres /var/log/postgresql
 chmod -R +r /etc/postgresql
 chmod -R +r /etc/postgresql-common
 
+numfile="$(find $PGDATA/pg_wal -type f | wc -l)"
+
 if [ ! -s "$PGDATA/PG_VERSION" ]; then
-
     gosu postgres initdb --username=postgres
+fi
 
-    gosu postgres pg_ctl --options="-c listen_addresses='localhost'" --wait start
+if [ $numfile -le 1 ]; then
+
+    gosu postgres pg_ctl --options="-c listen_addresses='localhost' '--config-file=/etc/postgresql/10/main/postgresql.conf'" --wait start
 
     if [ "$PGDATABASE" != "postgres" ]; then
         gosu postgres psql \
